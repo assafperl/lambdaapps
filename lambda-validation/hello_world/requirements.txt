@@ -1,0 +1,5 @@
+requests
+google-api-python-client
+pandas
+snowflake-connector-python
+s3fs

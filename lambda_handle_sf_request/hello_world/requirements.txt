@@ -1,0 +1,4 @@
+requests
+pandas
+simple_salesforce
+datetime
