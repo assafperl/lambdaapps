@@ -156,11 +156,12 @@ def loop_the_sheet():
                 filename = os.path.basename(file)
                 msg.add_header('Content-Disposition', 'attachment', filename=filename)
                 message.attach(msg)
-        message_text = message_text + 'Thank you,' + '\n' + ' Assaf P'
-        msg = MIMEText(message_text)
-        message.attach(msg)
-        raw_text = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
-        message_data = send_message(service, user_id, raw_text)
+        if counter != 1 :
+            message_text = message_text + 'Thank you,' + '\n' + ' Assaf P'
+            msg = MIMEText(message_text)
+            message.attach(msg)
+            raw_text = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+            message_data = send_message(service, user_id, raw_text)
 
 
 def send_message(service, user_id, message):
