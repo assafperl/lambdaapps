@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "backup-snapshot"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1nw9mxc5emv1g"
+s3_prefix = "backup-snapshot"
+region = "eu-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["BackupSnapshotFunction=486592736240.dkr.ecr.eu-west-2.amazonaws.com/backup-snapshot"]
