@@ -87,6 +87,10 @@ def uplaod_sf_snf_account():
         '%Y-%m-%dT%H:%M:%SZ')
     df_snowflake["pm_churn_effective_date"] = df_snowflake["pm_churn_effective_date".upper()].dt.strftime(
         '%Y-%m-%dT%H:%M:%SZ')
+    df_snowflake["sensitive_consent_enddate"] = df_snowflake["sensitive_consent_enddate".upper()].dt.strftime(
+        '%Y-%m-%dT%H:%M:%SZ')
+    df_snowflake["support_consent_enddate"] = df_snowflake["support_consent_enddate".upper()].dt.strftime(
+        '%Y-%m-%dT%H:%M:%SZ')
     df_snowflake.columns = [str((col.upper())) + '__c' for col in
                             df_snowflake.columns]  # turn column names to __c for upload
 

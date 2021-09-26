@@ -50,7 +50,7 @@ def get_df_snowflake_f(conn, snf_query):
     return pd.read_sql_query(snf_query, conn)
 
 
-def get_google_sheet_contacts(maxline):
+def get_google_sheet_contacts():
     s3client = boto3.client('s3')
     path_to_json = "google-creds/keys.json"
     s3_clientobj = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_json)
@@ -61,7 +61,7 @@ def get_google_sheet_contacts(maxline):
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D" + str(maxline)).execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D33").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     return googlesheetdf
@@ -78,7 +78,7 @@ def push_to_s3(df, table, short):
     return destination
 
 
-def get_google_sheet(maxline):
+def get_google_sheet():
     s3client = boto3.client('s3')
     path_to_json = "google-creds/keys.json"
     s3_clientobj = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_json)
@@ -89,7 +89,7 @@ def get_google_sheet(maxline):
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1:G" + str(maxline)).execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1:G32").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     googlesheetdf['script'] = googlesheetdf['script'].str.replace('\n', ' ')
@@ -113,8 +113,8 @@ def loop_the_sheet():
     sender = "assaf.perl@hibob.io"
     user_id = "me"
     conn = get_snowflake_con()
-    df = get_google_sheet(40)
-    df_contacts = get_google_sheet_contacts(30)
+    df = get_google_sheet()
+    df_contacts = get_google_sheet_contacts()
     df_contacts['Emails'] = df_contacts[['Group Name', 'Email']].groupby(['Group Name'])['Email'].transform(
         lambda x: ','.join(x))
     df_contacts = df_contacts[['Group Name', 'Owner email', 'Name', 'Emails']].drop_duplicates()
