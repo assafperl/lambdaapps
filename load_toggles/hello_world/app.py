@@ -127,7 +127,7 @@ def upload_toggle_utc():
     destination = push_to_s3(df)
 
     conn.cursor().execute("copy into " + os.environ['PROD_DB'] + "." + os.environ[
-        'SNAPSHOT_SCHEMA'] + ".COMPANY_TOGGLE_UTC from @poc_s3_stage55/" + destination + "\
+        'SNAPSHOT_SCHEMA'] + ".COMPANY_TOGGLE_UTC from @bob_s3_stage55/" + destination + "\
                             file_format = (type = csv field_delimiter = ',' record_delimiter = '\n' skip_header = 1 FIELD_OPTIONALLY_ENCLOSED_BY = '0x22');")
     logger.info(str(df.shape[0]) + ' records loaded into COMPANY_TOGGLE_UTC table')
 

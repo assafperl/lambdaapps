@@ -1,0 +1,5 @@
+requests
+google-api-python-client
+pandas
+tableauserverclient
+s3fs

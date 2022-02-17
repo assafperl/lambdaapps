@@ -42,14 +42,14 @@ def gen_insert_update_json_contacts():
         logger.info('## generating insert file')
         data_T_insert = list(df_snowflake_insert.T.to_dict().values())
         jdata = json.dumps(data_T_insert)
-        s3.Bucket('integrationbobbi').put_object(Key='insert-real-contacts.json', Body=jdata)
+        s3.Bucket('integrationbibob').put_object(Key='insert-real-contacts.json', Body=jdata)
         logger.info(str(len(data_T_insert)) + ' records inserted into insert-real-contacts.json')
         #logger.info(f'{data_T_insert} into insert-real-contacts.json')
     if not df_snowflake_update.empty:
         logger.info('## generating update file')
         data_T_update = list(df_snowflake_update.T.to_dict().values())
         jdata = json.dumps(data_T_update)
-        s3.Bucket('integrationbobbi').put_object(Key='update-real-contacts.json', Body=jdata)
+        s3.Bucket('integrationbibob').put_object(Key='update-real-contacts.json', Body=jdata)
         logger.info(str(len(data_T_update)) + ' records been inserted into update-real-contacts.json')
         #logger.info(f'{data_T_update} into update-real-contacts.json')
 

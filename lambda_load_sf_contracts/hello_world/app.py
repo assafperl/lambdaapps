@@ -70,7 +70,7 @@ def uplaod_sf_snf_contracts():
         logger.info('## generating insert file')
         data_T_insert = list(df_sf_insert.T.to_dict().values())
         jdata = json.dumps(data_T_insert)
-        s3.Bucket('integrationbobbi').put_object(Key='insert-contracts.json', Body=jdata)
+        s3.Bucket('integrationbibob').put_object(Key='insert-contracts.json', Body=jdata)
         logger.info(str(len(data_T_insert)) + 'records inserted into insert-contracts.json')
 
     df_sf_update = df_sf[df_sf["Id"].notnull()]  # should unify lines
@@ -78,7 +78,7 @@ def uplaod_sf_snf_contracts():
     logger.info('## generating update file')
     data_T_update = list(df_sf_update.T.to_dict().values())
     jdata = json.dumps(data_T_update)
-    s3.Bucket('integrationbobbi').put_object(Key='update-contracts.json', Body=jdata)
+    s3.Bucket('integrationbibob').put_object(Key='update-contracts.json', Body=jdata)
     logger.info(str(len(data_T_update)) + 'records inserted into update-contacts.json')
     logger.info('## finished')
 

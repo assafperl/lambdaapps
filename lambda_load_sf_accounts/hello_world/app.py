@@ -69,7 +69,7 @@ def uplaod_sf_snf_account():
         df_sf_del_product_bi = df_sf_del_product_bi.drop(columns=["attributes"])
         data_T = list(df_sf_del_product_bi.T.to_dict().values())
         jdata = json.dumps(data_T)
-        s3.Bucket('integrationbobbi').put_object(Key='delete-accounts.json', Body=jdata)
+        s3.Bucket('integrationbibob').put_object(Key='delete-accounts.json', Body=jdata)
         logger.info(str(len(data_T)) + 'records inserted into delete-accounts.json')
         # When empty (no items to delete) then skip
 
@@ -108,7 +108,7 @@ def uplaod_sf_snf_account():
         logger.info('## generating insert file')
         data_T_insert = list(df_sf_insert.T.to_dict().values())
         jdata = json.dumps(data_T_insert)
-        s3.Bucket('integrationbobbi').put_object(Key='insert-accounts.json', Body=jdata)
+        s3.Bucket('integrationbibob').put_object(Key='insert-accounts.json', Body=jdata)
         logger.info(str(len(data_T_insert)) + 'records inserted into insert-accounts.json')
 
     df_sf_update = df_sf[df_sf["Id"].notnull()]  # should unify lines
@@ -116,7 +116,7 @@ def uplaod_sf_snf_account():
     logger.info('## generating update file')
     data_T_update = list(df_sf_update.T.to_dict().values())
     jdata = json.dumps(data_T_update)
-    s3.Bucket('integrationbobbi').put_object(Key='update-accounts.json', Body=jdata)
+    s3.Bucket('integrationbibob').put_object(Key='update-accounts.json', Body=jdata)
     logger.info(str(len(data_T_update)) + 'records inserted into update-accounts.json')
     logger.info('## finished')
 

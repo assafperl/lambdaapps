@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "validation-30days"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi76rhor2v61"
+s3_prefix = "validation-30days"
+region = "eu-west-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["Validations30Function=486592736240.dkr.ecr.eu-west-1.amazonaws.com/validation-30days"]

@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 os.environ['PROD_DB'] = 'HIBOB_PROD_DB'
 os.environ['SNAPSHOT_SCHEMA'] = 'DWH_SNAPSHOT'
 os.environ['DEV_DB'] = 'HIBOB_DEV_DB'
-os.environ['BUCKET_NAME'] = 'integrationbobbi'
+os.environ['BUCKET_NAME'] = 'integrationbibob'
 
 
 def get_secret_value(name, version=None):
@@ -53,14 +53,18 @@ def invoke_lambda(table_name,year,client):
     "year"   : year
     }
     response = client.invoke(
-    FunctionName = 'arn:aws:lambda:eu-west-2:486592736240:function:single-snapshot-SingleSnapshotFunction-JbChU6E3inGq',
+    FunctionName = 'arn:aws:lambda:eu-west-1:486592736240:function:single-snapshot-SingleSnapshotFunction-xx0dlPDfdOUf',
     InvocationType = 'Event',
     Payload = json.dumps(inputParams))
 
 
 def get_df_snowflake_date(conn,table):
-    snf_query = 'SELECT distinct date_part(year,date_::date) as year from '+ table
-    return pd.read_sql_query(snf_query, conn)
+    if table != 'EMP_ROLES':
+        snf_query = 'SELECT distinct date_part(year,date_::date) as year from '+ table
+        return pd.read_sql_query(snf_query, conn)
+    else:
+        snf_query = 'SELECT distinct date_part(year,UPDATE_DATE::date) as year from ' + table
+        return pd.read_sql_query(snf_query, conn)
 
 
 def lambda_handler(event, context):
@@ -80,7 +84,7 @@ def lambda_handler(event, context):
         file_name = table_name + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
         folder_name = str(datetime.datetime.now().strftime('%Y%m%d'))
         conn.cursor().execute(
-            "copy into @poc_s3_stage55/backup-snapshot/current/" + folder_name + "/" + file_name + " from " + table_name + " file_format = (type = csv field_delimiter = ',' record_delimiter = '\n' skip_header = 1 FIELD_OPTIONALLY_ENCLOSED_BY = '0x22');")
+            "copy into @bob_s3_stage55/backup-snapshot/current/" + folder_name + "/" + file_name + " from " + table_name + " file_format = (type = csv field_delimiter = ',' record_delimiter = '\n' skip_header = 1 FIELD_OPTIONALLY_ENCLOSED_BY = '0x22');")
 
     return {
         "statusCode": 200,

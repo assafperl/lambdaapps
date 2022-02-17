@@ -17,9 +17,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 import mimetypes
 
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-os.environ['BUCKET_NAME'] = 'integrationbobbi'
+os.environ['BUCKET_NAME'] = 'integrationbibob'
 dateTimeObj = datetime.now()
 
 
@@ -34,6 +35,14 @@ def get_secret_value(name, version=None):
 
 def get_snowflake_con():
     snowflakedict = get_secret_value('snowflake')
+    '''engine = create_engine(URL(
+        account=json.loads(snowflakedict['SecretString'])['account'],
+        user=json.loads(snowflakedict['SecretString'])['user'],
+        password=json.loads(snowflakedict['SecretString'])['password'],
+        warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
+        role=json.loads(snowflakedict['SecretString'])['role']
+    ))
+    con = engine.connect()'''
     conn = snowflake.connector.connect(
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],
@@ -47,7 +56,7 @@ def get_snowflake_con():
 
 
 def get_df_snowflake_f(conn, snf_query):
-    return pd.read_sql_query(snf_query, conn)
+    return pd.read_sql(snf_query, conn)
 
 
 def get_google_sheet_contacts():
@@ -61,7 +70,7 @@ def get_google_sheet_contacts():
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D33").execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D100").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     return googlesheetdf
@@ -89,7 +98,7 @@ def get_google_sheet():
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1:G32").execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Sheet1!A1:G100").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     googlesheetdf['script'] = googlesheetdf['script'].str.replace('\n', ' ')
@@ -100,7 +109,7 @@ def get_google_sheet():
 def get_gmail_service():
     path_to_pickle = "google-creds/token.pickle"
     s3client = boto3.client('s3')
-    response = s3client.get_object(Bucket='integrationbobbi', Key=path_to_pickle)
+    response = s3client.get_object(Bucket='integrationbibob', Key=path_to_pickle)
     body = response['Body'].read()
     creds = pickle.loads(body)
     service = build('gmail', 'v1', credentials=creds)
@@ -120,48 +129,48 @@ def loop_the_sheet():
     df_contacts = df_contacts[['Group Name', 'Owner email', 'Name', 'Emails']].drop_duplicates()
     df_contacts = df_contacts.reset_index(drop=True)
     df_contacts = df_contacts.rename(columns={"Group Name": "Contacts"})
-    df = df[df['Contacts'] != 'assaf.perl@hibob.io']
-    if dateTimeObj.hour > 12:
+    df = df[df['disable'] != '1']
+    if dateTimeObj.hour > 9:
         df = df[df['frequency'] == '2']
     googlesheetdf = pd.merge(df, df_contacts, how='left', on=['Contacts'])
     for email_list in googlesheetdf['Owner email'].unique():
         group = googlesheetdf[googlesheetdf['Owner email'] == email_list]
         group = group.reset_index(drop=True)
-        message = MIMEMultipart()
-
-        message_text = 'Greetings, ' + str(group['Name'].unique()[0])
-        message['to'] = email_list
-        message['cc'] = str(group['Emails'].unique()[0])
-        message['from'] = sender
-        message['subject'] = "Data Validations - ***soft launch*** " + str(dateTimeObj)
-        counter = 1
-        for index, row in group.iterrows():
-            attdf = get_df_snowflake_f(conn, group['script'].iloc[index])
-            if attdf.shape[0] != 0 and attdf.values[0][0] != 'Success':
-                destination = push_to_s3(attdf, row['table'], row['short'])
-                logger.info(destination)
-                message_text = message_text + '\n' + str(counter) + '. ' + str(attdf.shape[0]) + ' ' + row[
-                    'description'] + '\n' + 'Attached ' + destination + '\n'
-                counter = counter + 1
-                file = os.environ['BUCKET_NAME'] + '/' + destination
-                content_type, encoding = mimetypes.guess_type(file)
-                if content_type is None or encoding is not None:
-                    content_type = 'application/octet-stream'
-                main_type, sub_type = content_type.split('/', 1)
-                fs = s3fs.S3FileSystem()
-                fp = fs.open(file, 'rb')
-                msg = MIMEBase(main_type, sub_type)
-                msg.set_payload(fp.read())
-                fp.close()
-                filename = os.path.basename(file)
-                msg.add_header('Content-Disposition', 'attachment', filename=filename)
+        if not group.empty:
+            message = MIMEMultipart()
+            message_text = 'Greetings, ' + str(group['Name'].unique()[0])
+            message['to'] = email_list
+            message['cc'] = str(group['Emails'].unique()[0])
+            message['from'] = sender
+            message['subject'] = "Data Validations - ***soft launch*** " + str(dateTimeObj)
+            counter = 1
+            for index, row in group.iterrows():
+                attdf = get_df_snowflake_f(conn, group['script'].iloc[index])
+                if attdf.shape[0] != 0 and attdf.values[0][0] != 'Success':
+                    destination = push_to_s3(attdf, row['table'], row['short'])
+                    logger.info(destination)
+                    message_text = message_text + '\n' + str(counter) + '. ' + str(attdf.shape[0]) + ' ' + row[
+                        'description'] + '\n' + 'Attached ' + destination + '\n'
+                    counter = counter + 1
+                    file = os.environ['BUCKET_NAME'] + '/' + destination
+                    content_type, encoding = mimetypes.guess_type(file)
+                    if content_type is None or encoding is not None:
+                        content_type = 'application/octet-stream'
+                    main_type, sub_type = content_type.split('/', 1)
+                    fs = s3fs.S3FileSystem()
+                    fp = fs.open(file, 'rb')
+                    msg = MIMEBase(main_type, sub_type)
+                    msg.set_payload(fp.read())
+                    fp.close()
+                    filename = os.path.basename(file)
+                    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+                    message.attach(msg)
+            if counter != 1 :
+                message_text = message_text + 'Thank you,' + '\n' + ' Assaf P'
+                msg = MIMEText(message_text)
                 message.attach(msg)
-        if counter != 1 :
-            message_text = message_text + 'Thank you,' + '\n' + ' Assaf P'
-            msg = MIMEText(message_text)
-            message.attach(msg)
-            raw_text = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
-            message_data = send_message(service, user_id, raw_text)
+                raw_text = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+                message_data = send_message(service, user_id, raw_text)
 
 
 def send_message(service, user_id, message):

@@ -64,7 +64,7 @@ def handle_salesforce(event):
 
         if ((len(json_data) != 0) and (json_data != '0')):
             lst = json_data[0]
-            load_chunks(lst, 8000, json_file, sf)
+            load_chunks(lst, 400, json_file, sf)
             logger.info(f'{len(lst)}## executing ')
         else:
             logger.info('## nothing happened')
