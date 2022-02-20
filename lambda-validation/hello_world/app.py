@@ -130,8 +130,6 @@ def loop_the_sheet():
     df_contacts = df_contacts.reset_index(drop=True)
     df_contacts = df_contacts.rename(columns={"Group Name": "Contacts"})
     df = df[df['disable'] != '1']
-    if dateTimeObj.hour > 9:
-        df = df[df['frequency'] == '2']
     googlesheetdf = pd.merge(df, df_contacts, how='left', on=['Contacts'])
     for email_list in googlesheetdf['Owner email'].unique():
         group = googlesheetdf[googlesheetdf['Owner email'] == email_list]
