@@ -63,7 +63,7 @@ def uplaod_sf_snf_account():
     snf_sf_external_field = 'EXTERNALID__c'
 
     str_get_all_product_bi = "SELECT id FROM {} WHERE SF_ACCOUNTID__c = 'Unknown'".format(sf_object)
-    df_sf_del_product_bi = pd.DataFrame(sf.query(str_get_all_product_bi)["records"])
+    df_sf_del_product_bi = pd.DataFrame(sf.query_all(str_get_all_product_bi)["records"])
     if (df_sf_del_product_bi.empty == False):
         logger.info('## generating delete file')
         df_sf_del_product_bi = df_sf_del_product_bi.drop(columns=["attributes"])
@@ -97,7 +97,7 @@ def uplaod_sf_snf_account():
     ## End of Snowflake list preparation
 
     str_sf_query = 'SELECT id,{} FROM {}'.format(snf_sf_external_field, sf_object)
-    df_sf = pd.DataFrame(sf.query(str_sf_query)["records"])
+    df_sf = pd.DataFrame(sf.query_all(str_sf_query)["records"])
     df_sf = df_sf.drop(columns=["attributes"])
     df_sf = df_sf.merge(df_snowflake, how='outer', on=snf_sf_external_field)
 
