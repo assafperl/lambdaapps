@@ -16,7 +16,8 @@ from google.oauth2 import service_account
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 import mimetypes
-
+import urllib3
+urllib3.disable_warnings()
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -70,7 +71,7 @@ def get_google_sheet_contacts():
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Sheet4!A1:D100").execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D100").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     return googlesheetdf
@@ -136,17 +137,17 @@ def loop_the_sheet():
         group = group.reset_index(drop=True)
         if not group.empty:
             message = MIMEMultipart()
-            message_text = 'Greetings, ' + str(group['Name'].unique()[0])
+            message_text = 'Dear ' + str(group['Name'].unique()[0]) +','
             message['to'] = email_list
             message['cc'] = str(group['Emails'].unique()[0])
             message['from'] = sender
-            message['subject'] = "Data Validations - ***PROD - soft launch*** " + str(dateTimeObj)
+            message['subject'] = "Data Validations - ***PROD *** " + str(dateTimeObj)
             counter = 1
             for index, row in group.iterrows():
                 attdf = get_df_snowflake_f(conn, group['prod_script'].iloc[index])
                 if attdf.shape[0] != 0 and attdf.values[0][0] != 'Success':
                     destination = push_to_s3(attdf, row['table'], row['short'])
-                    logger.info(destination)
+                    logger.info(group['prod_script'].iloc[index])
                     message_text = message_text + '\n' + str(counter) + '. ' + str(attdf.shape[0]) + ' ' + row[
                         'description'] + '\n' + 'Attached ' + destination + '\n'
                     counter = counter + 1

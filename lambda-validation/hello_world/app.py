@@ -9,6 +9,7 @@ import logging
 import os
 import io
 import datetime
+import urllib3
 from datetime import datetime
 from email.mime.text import MIMEText
 from googleapiclient.discovery import build
@@ -16,7 +17,7 @@ from google.oauth2 import service_account
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 import mimetypes
-
+urllib3.disable_warnings()
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -35,14 +36,6 @@ def get_secret_value(name, version=None):
 
 def get_snowflake_con():
     snowflakedict = get_secret_value('snowflake')
-    '''engine = create_engine(URL(
-        account=json.loads(snowflakedict['SecretString'])['account'],
-        user=json.loads(snowflakedict['SecretString'])['user'],
-        password=json.loads(snowflakedict['SecretString'])['password'],
-        warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
-        role=json.loads(snowflakedict['SecretString'])['role']
-    ))
-    con = engine.connect()'''
     conn = snowflake.connector.connect(
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],

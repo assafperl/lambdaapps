@@ -8,4 +8,4 @@ s3_prefix = "check-rivery"
 region = "eu-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["CheckRiveryFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/check-rivery"]
+image_repositories = ["CheckRiveryFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/check-rivery-app"]

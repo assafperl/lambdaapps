@@ -14,7 +14,7 @@ def check_run(event):
     rivery = get_secret_value('rivery')
     token = json.loads(rivery['SecretString'])['token']
 
-    url = "https://eu-west-1.console.rivery.io/api/check_run?run_id="+event["Payload"]["run_id"]
+    url = "https://eu-west-1.console.rivery.io/api/check_run?run_id="+event["run_id"]
 
     payload = {}
     headers = {
@@ -27,7 +27,9 @@ def check_run(event):
 def lambda_handler(event, context):
     return {
         "status": check_run(event),
-        "run_id": event["Payload"]["run_id"],
+        "run_id": event["run_id"],
+        "period": event['period'],
+        "name": event['name'],
     }
 
 

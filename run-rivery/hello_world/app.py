@@ -1,6 +1,8 @@
 import boto3
 import requests
 import json
+
+
 def get_secret_value(name, version=None):
     secrets_client = boto3.client("secretsmanager")
     kwargs = {'SecretId': name}
@@ -9,8 +11,8 @@ def get_secret_value(name, version=None):
     response = secrets_client.get_secret_value(**kwargs)
     return response
 
-def run_Misc(event):
 
+def run_Misc(event):
     rivery = get_secret_value('rivery')
     token = json.loads(rivery['SecretString'])['token']
 
@@ -41,6 +43,8 @@ def run_Misc(event):
 def lambda_handler(event, context):
     return  {
                 "run_id": run_Misc(event),
+                "period": event['period'],
+                "name": event['name'],
             }
 
 

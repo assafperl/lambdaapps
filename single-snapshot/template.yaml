@@ -19,8 +19,8 @@ Resources:
         Variables:
           PROD_DB: HIBOB_PROD_DB
           DEV_DB: HIBOB_DEV_DB
-          SNAPSHOT_SCHEMA: SNAPSHOT
-          BUCKET_NAME: integrationbobbi
+          SNAPSHOT_SCHEMA: ODS_SNAPSHOT
+          BUCKET_NAME: integrationbibob
       Events:
         SingleSnapshot:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api

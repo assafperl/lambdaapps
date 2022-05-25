@@ -37,7 +37,13 @@ def generate_active_integration_pivot_utc():
     aa1 = ','.join("'{0}'".format(x) for x in df_snowflake.INTEGRATION_NAME.values)
     snf_query = "create or replace table HIBOB_PROD_DB.STG.active_integration_pivot_utc as (select * from HIBOB_PROD_DB.STG.active_integration_utc pivot ( count(integration_name) for integration_name in ( "  +aa1+"))as p);"
     output = conn.execute_string(snf_query)
-    #logger.info(str(output) + 'made this pivot')
+    for el in aa1.split(','):
+        snf_query = 'alter table HIBOB_PROD_DB.STG.active_integration_pivot_utc rename column "' + el + '" to "' + el.replace("\'","")+'"'
+        output = conn.execute_string(snf_query)
+    aa1 = '+'.join("'{0}'".format(x) for x in df_snowflake.INTEGRATION_NAME.values)
+    snf_query ='create or replace table HIBOB_PROD_DB.STG.active_integration_pivot_utc as (select *,sum('+aa1+') over (partition by  DATE_DATE,COMPANY_ID ) as Total_Integrations from HIBOB_PROD_DB.STG.active_integration_pivot_utc)'
+    snf_query = snf_query.replace('\'','\"')
+    output = conn.execute_string(snf_query)
 
 
 def lambda_handler(event, context):
