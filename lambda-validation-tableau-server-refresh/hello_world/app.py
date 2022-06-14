@@ -15,6 +15,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 import tableauserverclient as TSC
 import mimetypes
+import urllib3
+urllib3.disable_warnings()
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -47,7 +49,7 @@ def push_to_s3(df, table, short):
 def get_gmail_service():
     path_to_pickle = "google-creds/token.pickle"
     s3client = boto3.client('s3')
-    response = s3client.get_object(Bucket='integrationbibob', Key=path_to_pickle)
+    response = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_pickle)
     body = response['Body'].read()
     creds = pickle.loads(body)
     service = build('gmail', 'v1', credentials=creds)
@@ -87,17 +89,21 @@ def get_unrefreshed_prod_tableau_sources():
     column_names = ['resource_name', 'resource_type','project_name', 'owner', 'webpage_url', 'last_updated']
     df = pd.DataFrame(columns=column_names)
     tableaudict = get_secret_value('tableau')
-    user = json.loads(tableaudict['SecretString'])['user']
-    password = json.loads(tableaudict['SecretString'])['password']
-    url = json.loads(tableaudict['SecretString'])['url']
-    site = json.loads(tableaudict['SecretString'])['site']
-
-    tableau_auth = TSC.TableauAuth(user, password, site)
-    server = TSC.Server(url, use_server_version=True)
+    name = json.loads(tableaudict['SecretString'])['srv_token_name']
+    token = json.loads(tableaudict['SecretString'])['srv_token']
+    url = json.loads(tableaudict['SecretString'])['srv_url']
+    #tag = event['queryStringParameters']['tag']
+    tag = 'prod'
+    if tag == '' :
+        return
+    tableau_auth = TSC.PersonalAccessTokenAuth(name, token, '')
+    server = TSC.Server(url)
+    server.add_http_options({'verify': False})
+    server.use_server_version()
     req_option = TSC.RequestOptions()
     req_option.filter.add(TSC.Filter(TSC.RequestOptions.Field.Tags,
                                      TSC.RequestOptions.Operator.Equals,
-                                     'prod'))
+                                     tag))
     with server.auth.sign_in(tableau_auth):
         all_workbooks, pagination_item = server.workbooks.get(req_option)
         for workbook in all_workbooks:
@@ -131,9 +137,9 @@ def run_tableau_refresh_validation():
     message = MIMEMultipart()
     message_text = 'Greetings, BI Team'
     message['to'] = 'ohad.hallak@hibob.io'
-    message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,atzmon.avidar@hibob.io '
+    message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,atzmon.avidar@hibob.io'
     message['from'] = sender
-    message['subject'] = "Tableau Refresh Validations " + str(dateTimeObj)
+    message['subject'] = "Tableau Prod Server Refresh Validations " + str(dateTimeObj)
     attdf = get_unrefreshed_prod_tableau_sources()
     destination = push_to_s3(attdf, 'tablue', 'refreshed-validation')
     logger.info(destination)

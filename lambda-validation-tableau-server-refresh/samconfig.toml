@@ -2,10 +2,10 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "employee-all-companies"
+stack_name = "validation-server-tableau"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi76rhor2v61"
-s3_prefix = "employee-all-companies"
+s3_prefix = "validation-server-tableau"
 region = "eu-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["EmployeeAllCompanyFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/employee-all-company"]
+image_repositories = ["ValidationsServerTableauFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/tableau-prod-refresh-validation"]

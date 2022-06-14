@@ -41,7 +41,7 @@ def alert_pipeline_not_updated():
         message = MIMEMultipart()
         message_text = 'Greetings, BI Team!\n'
         message['to'] = 'ohad.hallak@hibob.io'
-        message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,natalie.oron@hibob.io,david.sussely@hibob.io'
+        message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,natalie.oron@hibob.io,david.sussely@hibob.io,atzmon.avidar@hibob.io'
         message['from'] = sender
         message['subject'] = "Pipelines are not up to date" + str(dateTimeObj)
         message_text = message_text + '\n' + '\n' + 'Thank you,' + '\n' + ' Assaf P'
