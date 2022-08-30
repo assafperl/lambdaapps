@@ -3,9 +3,11 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "billing-groups"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-66t01v46pi7c"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi76rhor2v61"
 s3_prefix = "billing-groups"
 region = "eu-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["UplaodLoggingGroupsFunction=462560519018.dkr.ecr.eu-west-1.amazonaws.com/billing-groups"]
+image_repositories = ["UplaodLoggingGroupsFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/billing-groups"]
+profile = "prod"
+disable_rollback = true

@@ -18,7 +18,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 import pytz
 pacific = pytz.timezone('UTC')
-
+#boto3.setup_default_session(profile_name='prod',region_name='eu-west-1')
 
 def get_secret_value(name, version=None):
     secrets_client = boto3.client("secretsmanager")
@@ -40,18 +40,17 @@ def get_snowflake_con():
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],
         password=json.loads(snowflakedict['SecretString'])['password'],
-        database=os.environ['PROD_DB'],
-        schema=os.environ['SNAPSHOT_SCHEMA'],
         warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
         role=json.loads(snowflakedict['SecretString'])['role'],
         insecure_mode=True,
         numpy=True)
     return conn
 
-
 def get_df_snowflake(conn):
-    snf_query = 'SELECT COMPANY_ID ,NAME FROM ' + os.environ[
-        'DEV_DB'] + '.ods.prdt_hibob_public_company where  test_account = false'
+    snf_query = 'select distinct COMPANY_ID \
+    from HIBILLING.HIBILLING_PROD.ODS_COMPANY_STATS \
+    where UPDATE_DATE::date =\
+           (select max(UPDATE_DATE)::date from HIBILLING.HIBILLING_PROD.ODS_COMPANY_STATS)'
     return pd.read_sql_query(snf_query, conn)
 
 
@@ -68,40 +67,16 @@ def get_headers(body, secret):
     }
 
 
-def get_normalized_df(result, df_snowflake):
-    result = result.content.decode("utf-8")
-    array_of_array = literal_eval(result)
-    out_columns = ['bob_company', 'togle']
-    nl = []
-    for zz in array_of_array:
-        aa = {}
-        for key, val in zip(out_columns, zz):
-            aa[key] = val
-        nl.append(aa)
-    df = pd.DataFrame(nl)
-    split1 = df.apply(lambda x: pd.Series(x['togle']), axis=1).stack().reset_index(level=1, drop=True)
-    df = df.merge(split1.to_frame(), left_index=True, right_index=True)
-    df.columns = ['bob_company', 'togle', 'togle1']
-    df_snowflake['Runtime_timestamp'] = str(datetime.datetime.now())
-    df = df.merge(df_snowflake, left_on='bob_company', right_on='COMPANY_ID')[
-        ['COMPANY_ID', 'NAME', 'togle1', 'Runtime_timestamp']]
-    df['Date_'] = datetime.date.today() - datetime.timedelta(days=1)
-    df = df[['Date_', 'COMPANY_ID', 'NAME', 'togle1', 'Runtime_timestamp']]
-    df.columns = ['Date_', 'Company_ID', 'Company_name', 'Toggle_Name', 'Runtime_timestamp']
-    df = df.replace('\n', '', regex=True)
-    return df
-
-
 def push_to_s3(df):
     s3 = boto3.resource('s3')
+    s3_integration_bucket = get_secret_value('s3_integration_bucket')
+    bucket_name =json.loads(s3_integration_bucket['SecretString'])['name']
     destination = "billing-groups/billing_groups_" + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')) + '.csv'
     csv_buffer = io.StringIO()
     df.to_csv(csv_buffer, index=False)
     logger.info(destination +' file loaded into the bucket ')
-    s3.Bucket(os.environ['BUCKET_NAME']).put_object(Key=destination, Body=csv_buffer.getvalue())
+    s3.Bucket(bucket_name).put_object(Key=destination, Body=csv_buffer.getvalue())
     return destination
-
-
 
 
 def upload_logging_groups_utc():
@@ -125,7 +100,7 @@ def upload_logging_groups_utc():
             else:
                 df = pd.json_normalize(e)
                 df['company_id'] = e1[0]
-                df_all = df_all.append(df, ignore_index=True)
+                df_all = pd.concat([df_all, df], axis=0)
     df_all['runtime'] = datetime.datetime.now(tz=pacific).strftime('%Y-%m-%dT%H:%M:%SZ')
     df_all = df_all[['company_id','billingGroupId','numberOfEmployees','runtime']]
     push_to_s3(df_all)
