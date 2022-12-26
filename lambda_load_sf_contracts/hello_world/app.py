@@ -37,8 +37,8 @@ def uplaod_sf_snf_contracts():
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],
         password=json.loads(snowflakedict['SecretString'])['password'],
-        database=json.loads(snowflakedict['SecretString'])['database'],
-        schema=json.loads(snowflakedict['SecretString'])['schema'],
+        database='HIBOB_PROD_DB',
+        schema='INTEGRATION',
         warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
         role=json.loads(snowflakedict['SecretString'])['role'],
         numpy=True)

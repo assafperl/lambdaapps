@@ -2,10 +2,12 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "validation-prod"
+stack_name = "validation-aa"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-hi76rhor2v61"
-s3_prefix = "validation-prod"
+s3_prefix = "validation-aa"
 region = "eu-west-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["ValidationsProdFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/validation-prod"]
+image_repositories = ["ValidationsProdFunction=486592736240.dkr.ecr.eu-west-1.amazonaws.com/prod-validation-aa"]
+profile = "prod"
+disable_rollback = true

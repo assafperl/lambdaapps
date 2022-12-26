@@ -38,18 +38,20 @@ def get_snowflake_con():
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],
         password=json.loads(snowflakedict['SecretString'])['password'],
-        database=os.environ['PROD_DB'],
-        schema=os.environ['SNAPSHOT_SCHEMA'],
         warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
         role=json.loads(snowflakedict['SecretString'])['role'],
+        database=os.environ['PROD_DB'],
+        schema=os.environ['SNAPSHOT_SCHEMA'],
         insecure_mode=True,
         numpy=True)
     return conn
 
 
 def get_df_snowflake(conn):
-    snf_query = 'SELECT COMPANY_ID ,NAME FROM ' + os.environ[
-        'DEV_DB'] + '.ods.prdt_hibob_public_company where  test_account = false'
+    snf_query = 'select distinct s.COMPANY_ID,c.NAME \
+ from HIBILLING.HIBILLING_PROD.ODS_COMPANY_STATS s \
+ inner join HIBOB_PROD_DB.ODS.BOB_HIBOB_COMPANY c on s.COMPANY_ID = c.COMPANY_ID where s.UPDATE_DATE::date =\
+       (select max(UPDATE_DATE)::date from HIBILLING.HIBILLING_PROD.ODS_COMPANY_STATS)'
     return pd.read_sql_query(snf_query, conn)
 
 
@@ -92,11 +94,13 @@ def get_normalized_df(result, df_snowflake):
 
 def push_to_s3(df):
     s3 = boto3.resource('s3')
+    s3_integration_bucket = get_secret_value('s3_integration_bucket')
+    bucket_name =json.loads(s3_integration_bucket['SecretString'])['name']
     destination = "toggles/company_toggle_" + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')) + '.csv'
     csv_buffer = io.StringIO()
     df.to_csv(csv_buffer, index=False)
     logger.info(destination + ' file loaded into the bucket ')
-    s3.Bucket(os.environ['BUCKET_NAME']).put_object(Key=destination, Body=csv_buffer.getvalue())
+    s3.Bucket(bucket_name).put_object(Key=destination, Body=csv_buffer.getvalue())
     return destination
 
 

@@ -3,11 +3,11 @@
 [function_build_definitions]
 [function_build_definitions.05433f3b-4bf7-4a5f-9721-22ea7c686840]
 packagetype = "Image"
-functions = ["RefreshTableauAdhocFunction"]
+functions = ["RefreshTableauDevFunction"]
 
 [function_build_definitions.05433f3b-4bf7-4a5f-9721-22ea7c686840.metadata]
 Dockerfile = "Dockerfile"
-DockerContext = "C:\\Users\\AssafPerl\\git_20210825\\refresh-tableau-adhocrefresh\\hello_world"
+DockerContext = "C:\\Users\\AssafPerl\\git_20210825\\refresh-tableau-dev\\hello_world"
 DockerTag = "python3.8-v1"
 
 [layer_build_definitions]

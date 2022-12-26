@@ -61,12 +61,6 @@ def get_df_snowflake_f(conn, snf_query):
 
 
 def get_google_sheet_contacts():
-    #s3client = boto3.client('s3')
-    #path_to_json = "google-creds/keys.json"
-    #s3_clientobj = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_json)
-    #s3_clientdata = s3_clientobj['Body'].read().decode('utf-8')
-    #s3clientjson = json.loads(s3_clientdata)
-
     googlesheetdict = get_secret_value('googlesheet-serviceaccount')
     s3clientjson = json.loads(json.loads(googlesheetdict['SecretString'])['keys'])
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
@@ -133,7 +127,7 @@ def loop_the_sheet():
     df_contacts = df_contacts[['Group Name', 'Owner email', 'Name', 'Emails']].drop_duplicates()
     df_contacts = df_contacts.reset_index(drop=True)
     df_contacts = df_contacts.rename(columns={"Group Name": "Contacts"})
-    df = df[df['disable'] != '1']
+    df = df.loc[((df['disable'] == '1') & (df['Contacts']=='AA'))]
     googlesheetdf = pd.merge(df, df_contacts, how='left', on=['Contacts'])
     for email_list in googlesheetdf['Owner email'].unique():
         group = googlesheetdf[googlesheetdf['Owner email'] == email_list]

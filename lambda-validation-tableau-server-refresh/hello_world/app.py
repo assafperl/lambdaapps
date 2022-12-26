@@ -66,17 +66,17 @@ def send_message(service, user_id, message):
 def get_all_user():
     request_options = TSC.RequestOptions(pagesize=1000)
     tableaudict = get_secret_value('tableau')
-    user = json.loads(tableaudict['SecretString'])['user']
-    password = json.loads(tableaudict['SecretString'])['password']
-    url = json.loads(tableaudict['SecretString'])['url']
-    site = json.loads(tableaudict['SecretString'])['site']
-
-    tableau_auth = TSC.TableauAuth(user, password, site)
-    server = TSC.Server(url, use_server_version=True)
-
+    name = json.loads(tableaudict['SecretString'])['srv_token_name']
+    token = json.loads(tableaudict['SecretString'])['srv_token']
+    url = json.loads(tableaudict['SecretString'])['srv_url']
+    server = TSC.Server(url)
+    server.add_http_options({'verify': False})
+    server.use_server_version()
+    tableau_auth = TSC.PersonalAccessTokenAuth(name, token, '')
+    req_option = TSC.RequestOptions()
     with server.auth.sign_in(tableau_auth):
         all_users = list(TSC.Pager(server.users, request_options))
-        return [{user.id: user.name} for user in all_users]
+        return {k:v for element in [{user.id: user.name} for user in all_users] for k,v in element.items()}
 
 
 def get_user_email(id_, userinfo):
@@ -86,16 +86,14 @@ def get_user_email(id_, userinfo):
 
 
 def get_unrefreshed_prod_tableau_sources():
-    column_names = ['resource_name', 'resource_type','project_name', 'owner', 'webpage_url', 'last_updated']
+    user_list = get_all_user()
+    column_names = ['resource_name', 'resource_type', 'project_name', 'owner', 'webpage_url', 'last_updated']
     df = pd.DataFrame(columns=column_names)
     tableaudict = get_secret_value('tableau')
     name = json.loads(tableaudict['SecretString'])['srv_token_name']
     token = json.loads(tableaudict['SecretString'])['srv_token']
     url = json.loads(tableaudict['SecretString'])['srv_url']
-    #tag = event['queryStringParameters']['tag']
     tag = 'prod'
-    if tag == '' :
-        return
     tableau_auth = TSC.PersonalAccessTokenAuth(name, token, '')
     server = TSC.Server(url)
     server.add_http_options({'verify': False})
@@ -111,22 +109,22 @@ def get_unrefreshed_prod_tableau_sources():
                 if 'prod' in [tag.lower() for tag in workbook.tags]:
                     resource = server.workbooks.get_by_id(workbook.id)
                     if yesterday > datetime.strptime(str(resource.updated_at)[:-7], '%Y-%m-%d %H:%M:%S'):
-                        df_slut = pd.DataFrame([[resource.name, 'workbook',resource.project_name,
-                                                 get_user_email(workbook.owner_id, get_all_user()),resource.webpage_url,
+                        df_slut = pd.DataFrame([[resource.name, 'workbook', resource.project_name,
+                                                 user_list[workbook.owner_id], resource.webpage_url,
                                                  str(datetime.strptime(str(resource.updated_at)[:-7],
                                                                        '%Y-%m-%d %H:%M:%S'))]], columns=column_names)
-                        df = df.append(df_slut, ignore_index=True)
+                        df = pd.concat([df_slut, df], ignore_index=True)
         all_datasources, pagination_item = server.datasources.get(req_option)
         for datasource in all_datasources:
             if datasource.tags:
                 if 'prod' in [tag.lower() for tag in datasource.tags]:
                     resource = server.datasources.get_by_id(datasource.id)
                     if yesterday > datetime.strptime(str(resource.updated_at)[:-7], '%Y-%m-%d %H:%M:%S'):
-                        df_slut = pd.DataFrame([[resource.name, 'datasource',resource.project_name,
-                                                 get_user_email(datasource.owner_id, get_all_user()),resource.webpage_url,
+                        df_slut = pd.DataFrame([[resource.name, 'datasource', resource.project_name,
+                                                 user_list[datasource.owner_id], resource.webpage_url,
                                                  str(datetime.strptime(str(resource.updated_at)[:-7],
                                                                        '%Y-%m-%d %H:%M:%S'))]], columns=column_names)
-                        df = df.append(df_slut, ignore_index=True)
+                        df = pd.concat([df_slut, df], ignore_index=True)
     return (df)
 
 
@@ -136,8 +134,8 @@ def run_tableau_refresh_validation():
     user_id = "me"
     message = MIMEMultipart()
     message_text = 'Greetings, BI Team'
-    message['to'] = 'ohad.hallak@hibob.io'
-    message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,atzmon.avidar@hibob.io'
+    message['to'] = 'atzmon.avidar@hibob.io'
+    message['cc'] = 'eran.cohen@hibob.io,assaf.perl@hibob.io,Omer.biber@hibob.io,Omer.Lewy@hibob.io,atzmon.avidar@hibob.io,natalie.oron@hibob.io,shiran.deutch@hibob.io,naor.daga@hibob.io,tslil.gil@hibob.io,harel.yarrow@hibob.io,anna.polyakov@hibob.io,assaf.haim@hibob.io'
     message['from'] = sender
     message['subject'] = "Tableau Prod Server Refresh Validations " + str(dateTimeObj)
     attdf = get_unrefreshed_prod_tableau_sources()

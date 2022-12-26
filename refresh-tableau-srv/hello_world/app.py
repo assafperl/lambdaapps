@@ -22,7 +22,7 @@ def refresh_tableau_workbooks_datasources_by_tag(event):
     token = json.loads(tableaudict['SecretString'])['srv_token']
     url = json.loads(tableaudict['SecretString'])['srv_url']
     tag = event['queryStringParameters']['tag']
-    if tag == '' :
+    if tag == '':
         return
     tableau_auth = TSC.PersonalAccessTokenAuth(name, token, '')
     server = TSC.Server(url)

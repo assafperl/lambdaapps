@@ -46,6 +46,7 @@ def get_snowflake_con():
         numpy=True)
     return conn
 
+
 def get_df_snowflake(conn):
     snf_query = 'select distinct COMPANY_ID \
     from HIBILLING.HIBILLING_PROD.ODS_COMPANY_STATS \

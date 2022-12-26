@@ -51,17 +51,14 @@ def get_df_snowflake_f(conn, snf_query):
 
 
 def get_google_sheet_contacts():
-    s3client = boto3.client('s3')
-    path_to_json = "google-creds/keys.json"
-    s3_clientobj = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_json)
-    s3_clientdata = s3_clientobj['Body'].read().decode('utf-8')
-    s3clientjson = json.loads(s3_clientdata)
+    googlesheetdict = get_secret_value('googlesheet-serviceaccount')
+    s3clientjson = json.loads(json.loads(googlesheetdict['SecretString'])['keys'])
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     credentials = service_account.Credentials.from_service_account_info(s3clientjson, scopes=SCOPES)
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
-    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D50").execute()
+    results = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="soft-launch!A1:D100").execute()
     column_names = results['values'].pop(0)
     googlesheetdf = pd.DataFrame(results['values'], columns=column_names)
     return googlesheetdf
@@ -79,11 +76,8 @@ def push_to_s3(df, table, short):
 
 
 def get_google_sheet():
-    s3client = boto3.client('s3')
-    path_to_json = "google-creds/keys.json"
-    s3_clientobj = s3client.get_object(Bucket=os.environ['BUCKET_NAME'], Key=path_to_json)
-    s3_clientdata = s3_clientobj['Body'].read().decode('utf-8')
-    s3clientjson = json.loads(s3_clientdata)
+    googlesheetdict = get_secret_value('googlesheet-serviceaccount')
+    s3clientjson = json.loads(json.loads(googlesheetdict['SecretString'])['keys'])
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     credentials = service_account.Credentials.from_service_account_info(s3clientjson, scopes=SCOPES)
     SPREADSHEET_ID = '1-DryCL1y5Z2Gy5paLbPXOlDqnsKYwniaQDi9CPksebM'

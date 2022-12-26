@@ -23,8 +23,8 @@ def gen_insert_update_json_contacts():
         account=json.loads(snowflakedict['SecretString'])['account'],
         user=json.loads(snowflakedict['SecretString'])['user'],
         password=json.loads(snowflakedict['SecretString'])['password'],
-        database=json.loads(snowflakedict['SecretString'])['database'],
-        schema=json.loads(snowflakedict['SecretString'])['schema'],
+        database='HIBOB_PROD_DB',
+        schema='INTEGRATION',
         warehouse=json.loads(snowflakedict['SecretString'])['warehouse'],
         role=json.loads(snowflakedict['SecretString'])['role'],
         numpy=True)
@@ -55,26 +55,7 @@ def gen_insert_update_json_contacts():
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
     gen_insert_update_json_contacts()
     return {
         "statusCode": 200,
